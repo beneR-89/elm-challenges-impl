@@ -1,0 +1,34 @@
+{
+  "name": "elm-challenges-impl",
+  "version": "1.0.0",
+  "description": "This project is a learning project using the [elmChallenges](https://github.com/pdamoc/elmChallenges) repository to get some tasks to implement.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack",
+    "client": "webpack-dev-server --port 3000"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/beneR-89/elm-challenges-impl.git"
+  },
+  "author": "Benedikt Rauls",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/beneR-89/elm-challenges-impl/issues"
+  },
+  "homepage": "https://github.com/beneR-89/elm-challenges-impl#readme",
+  "dependencies": {
+    "bootstrap": "^3.3.7",
+    "font-awesome": "^4.7.0"
+  },
+  "devDependencies": {
+    "css-loader": "^0.28.7",
+    "elm-webpack-loader": "^4.3.1",
+    "file-loader": "^1.1.4",
+    "style-loader": "^0.18.2",
+    "url-loader": "^0.5.9",
+    "webpack": "^3.6.0",
+    "webpack-dev-server": "^2.9.1"
+  }
+}
