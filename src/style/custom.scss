@@ -23,3 +23,29 @@ html body {
 .backBtnText {
   margin-left: 5px;
 }
+
+/*
+Challenge 1 specific styles
+*/
+
+$left-color: #FFD700;
+$left-bg-color: #DAA520;
+$right-color: #8FBC8F;
+$right-bg-color: #556B2F;
+
+.challenge1-text[data-pos=left] {
+  color: $left-color;
+}
+.challenge1-text[data-pos=right] {
+  color: $right-color;
+}
+
+.challenge1-bg {
+  margin-top: 30vh;
+}
+.challenge1-bg[data-pos=left] {
+  background-color: $left-bg-color;
+}
+.challenge1-bg[data-pos=right] {
+  background-color: $right-bg-color;
+}

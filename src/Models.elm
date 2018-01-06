@@ -1,13 +1,22 @@
 module Models exposing (..)
 
+type alias Position = {
+  x : Int,
+  y : Int
+}
+
 type alias Model = {
-  route : Route
+  mousePosition : Position,
+  route : Route,
+  windowWidth : Int
 }
 
 initialModel : Route -> Model
 initialModel route =
   {
-    route = route
+    mousePosition = { x = -1, y = -1 },
+    route = route,
+    windowWidth = -1
   }
 
 type Route
