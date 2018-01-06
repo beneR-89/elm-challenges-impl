@@ -27,3 +27,6 @@ parseLocation location =
 challengePath : Int -> String
 challengePath challengeId =
   "#challenge" ++ toString challengeId
+
+homePath : String
+homePath = "./"

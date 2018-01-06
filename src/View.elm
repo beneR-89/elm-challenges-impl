@@ -29,29 +29,37 @@ page model =
 
 homeView : Model -> Html Msg
 homeView model =
-  div []
-    [ nav [ class "navbar navbar-default mb-0" ]
-        [ div [ class "container-fluid" ]
-            [ div [ class "" ]
-                [ ul [ class "nav navbar-nav" ]
-                    [ li [ class "active" ]
-                        [ a [ href "" ] [ text "Home" ] ]
-                        , challengeNavItem 1
-                        , challengeNavItem 2
-                        , challengeNavItem 3
-                        , challengeNavItem 4
-                        , challengeNavItem 5
-                        , challengeNavItem 6
-                    ]
+  div [ class "fill" ]
+    [ challengeNav
+    , challengeHomeBody
+    ]
+
+challengeNav : Html Msg
+challengeNav =
+  nav [ class "navbar navbar-default mb-0 challengeNav" ]
+    [ div [ class "container-fluid" ]
+        [ div [ class "" ]
+            [ ul [ class "nav navbar-nav" ]
+                [ li [ class "active" ]
+                    [ a [ href "" ] [ text "Home" ] ]
+                    , challengeNavItem 1
+                    , challengeNavItem 2
+                    , challengeNavItem 3
+                    , challengeNavItem 4
+                    , challengeNavItem 5
+                    , challengeNavItem 6
                 ]
             ]
         ]
-        , div [ class "jumbotron" ]
-            [ div [ class "container" ]
-                [ h1 [] [ text "Elm Challenges" ]
-                , p [] [ text "Click on one item in the navigation bar above to view the result of the implementation of the specific challenge in action" ]
-                ]
-            ]
+    ]
+
+challengeHomeBody : Html Msg
+challengeHomeBody =
+  div [ class "jumbotron challengeHomeBody" ]
+    [ div [ class "container" ]
+        [ h1 [] [ text "Elm Challenges" ]
+        , p [] [ text "Click on one item in the navigation bar above to view the result of the implementation of the specific challenge in action" ]
+        ]
     ]
 
 challengeNavItem : Int -> Html msg

@@ -1,0 +1,25 @@
+$primary-color: #eee;
+
+.fill {
+  background-color: $primary-color;
+}
+
+html body {
+  @extend .fill;
+}
+
+.challengeNav {
+  margin-bottom: 0;
+}
+
+.challengeHomeBody {
+  @extend .fill;
+}
+
+.backBtnIcon {
+  padding-top: 10px;
+}
+
+.backBtnText {
+  margin-left: 5px;
+}

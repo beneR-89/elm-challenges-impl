@@ -2,6 +2,7 @@
 
 require('bootstrap/dist/css/bootstrap.min.css');
 require('font-awesome/css/font-awesome.css');
+require('./style/custom.scss');
 
 require('./index.html');
 
