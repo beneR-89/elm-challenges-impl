@@ -7,6 +7,7 @@ type alias Position = {
 
 type alias Model = {
   blueCircles : List Position,
+  drawRandomCircles : Bool,
   mousePosition : Position,
   route : Route,
   windowWidth : Int
@@ -16,6 +17,7 @@ initialModel : Route -> Model
 initialModel route =
   {
     blueCircles = [],
+    drawRandomCircles = True,
     mousePosition = { x = -1, y = -1 },
     route = route,
     windowWidth = -1

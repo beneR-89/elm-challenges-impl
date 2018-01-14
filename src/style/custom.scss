@@ -54,7 +54,7 @@ $right-bg-color: #556B2F;
 Challenge 2 specific styles
 */
 
-.blue-circle {
+.blueCircle {
   background-color: #0000ff;
   border-radius: 50%;
   border-width: 0px;
@@ -62,4 +62,17 @@ Challenge 2 specific styles
   height: 50px;
   z-index: -1;
   position: absolute;
+}
+
+/*
+Challenge 3 specific styles
+*/
+
+.circleCommandButtons {
+  display: flex;
+  flex-direction: row;
+}
+
+.circleCommandButton {
+  margin: 2px;
 }
