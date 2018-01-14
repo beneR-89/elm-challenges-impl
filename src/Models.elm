@@ -6,6 +6,7 @@ type alias Position = {
 }
 
 type alias Model = {
+  blueCircles : List Position,
   mousePosition : Position,
   route : Route,
   windowWidth : Int
@@ -14,6 +15,7 @@ type alias Model = {
 initialModel : Route -> Model
 initialModel route =
   {
+    blueCircles = [],
     mousePosition = { x = -1, y = -1 },
     route = route,
     windowWidth = -1
