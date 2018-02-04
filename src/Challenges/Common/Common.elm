@@ -24,3 +24,15 @@ blueCircle position =
     top = ("top", y ++ "%")
   in
     div [ class "blueCircle", style [left, top] ] []
+
+dropDuplicates : List String -> List String
+dropDuplicates strList =
+  strList
+  |> List.foldl addIfNotExist []
+
+addIfNotExist : String -> List String -> List String
+addIfNotExist str2Add currentList =
+  if not (List.member str2Add currentList) then
+    (::) str2Add currentList
+  else
+    currentList

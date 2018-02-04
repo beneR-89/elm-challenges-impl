@@ -1,12 +1,16 @@
 module Main exposing (..)
 
 import Char
+import Http
+import Json.Decode as Decode
 import Keyboard exposing (KeyCode)
+import Process
 import Random exposing (Generator)
 import Models exposing (..)
 import Mouse
 import Msgs exposing (Msg)
 import Navigation exposing (Location)
+import RemoteData
 import Routing
 import Task
 import Time exposing (Time)
@@ -23,12 +27,35 @@ init location =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
+    Msgs.OnChangeGithubUserNameToSearch newName ->
+      let
+        currentSearchId = model.githubUserSearch.id
+        newSearchId = currentSearchId + 1
+        searchObj = { id = newSearchId, search = newName }
+      in
+        ( { model | githubUserSearch = searchObj }
+        , waitForGithubUserToSearch searchObj )
     Msgs.OnGenerateRandomCircle x y ->
       let
         pos = Position x y
         blueCircles = model.blueCircles
       in
         ( { model | blueCircles = pos :: blueCircles }, Cmd.none )
+    Msgs.OnGithubUserInfo response ->
+      case response of
+        RemoteData.Success userInfo ->
+          ( { model | githubUser = response }, getGithubUserLanguages userInfo.fetchReposUrl )
+        RemoteData.NotAsked ->
+          ( { model | githubUser = response
+            , githubUserLanguages = RemoteData.NotAsked }, Cmd.none )
+        RemoteData.Loading ->
+          ( { model | githubUser = response
+            , githubUserLanguages = RemoteData.NotAsked }, Cmd.none )
+        RemoteData.Failure err ->
+          ( { model | githubUser = response
+            , githubUserLanguages = RemoteData.NotAsked }, Cmd.none )
+    Msgs.OnGithubUserRepos response ->
+      ( { model | githubUserLanguages = response }, Cmd.none )
     Msgs.OnKeyPressed keyCode ->
       handleKeyPressed model keyCode
     Msgs.OnLocationChange location ->
@@ -43,6 +70,17 @@ update msg model =
         ( { model | mousePosition = pos }, Cmd.none )
     Msgs.OnResetCircles ->
       resetCircles model
+    Msgs.OnSearchGithubUser lastSearch ->
+      let
+        currentSearchId = model.githubUserSearch.id
+        currentSearchName = model.githubUserSearch.search
+        searchGithubUser = lastSearch.id == currentSearchId && currentSearchName /= ""
+      in
+        if searchGithubUser then
+          ( model, getGithubUserInfo currentSearchName )
+        else
+          ( { model | githubUser = RemoteData.NotAsked
+            , githubUserLanguages = RemoteData.NotAsked }, Cmd.none )
     Msgs.OnTimerCreateRandomCircle ->
       let
         singleGen = Random.int 0 100
@@ -130,3 +168,35 @@ toggleCircleCreation model =
     drawCircles = model.drawRandomCircles
   in
     ( { model | drawRandomCircles = not drawCircles }, Cmd.none )
+
+waitForGithubUserToSearch : GithubUserSearch -> Cmd Msg
+waitForGithubUserToSearch lastSearch =
+  Process.sleep Time.second
+  |> Task.andThen (always <| Task.succeed (Msgs.OnSearchGithubUser lastSearch))
+  |> Task.perform identity
+
+getGithubUserInfo : String -> Cmd Msg
+getGithubUserInfo userName =
+  let
+    url = fetchGithubUserUrl userName
+  in
+    Http.get url decodeGithubUserInfo
+      |> RemoteData.sendRequest
+      |> Cmd.map Msgs.OnGithubUserInfo
+
+getGithubUserLanguages : String -> Cmd Msg
+getGithubUserLanguages userReposUrl =
+  Http.get userReposUrl decodeGithubUserReposInfo
+    |> RemoteData.sendRequest
+    |> Cmd.map Msgs.OnGithubUserRepos
+
+decodeGithubUserInfo : Decode.Decoder GithubUser
+decodeGithubUserInfo =
+  Decode.map3 GithubUser
+    (Decode.field "avatar_url" Decode.string)
+    (Decode.field "repos_url" Decode.string)
+    (Decode.field "name" Decode.string)
+
+decodeGithubUserReposInfo : Decode.Decoder (List String)
+decodeGithubUserReposInfo =
+  (Decode.list (Decode.field "language" Decode.string))

@@ -6,6 +6,7 @@ $primary-color: #eee;
 
 html body {
   @extend .fill;
+  font-family: "Arial", sans-serif;
 }
 
 .challengeNav {
@@ -75,4 +76,22 @@ Challenge 3 specific styles
 
 .circleCommandButton {
   margin: 2px;
+}
+
+/*
+Challenge 4 specific styles
+*/
+
+.userInputForm {
+  margin-top: 20px;
+}
+
+.userImg {
+  width: 100%;
+  max-width: 300px;
+}
+
+.userDetails {
+  display: flex;
+  flex-direction: column;
 }
