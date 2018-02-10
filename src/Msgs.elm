@@ -4,6 +4,7 @@ import Keyboard exposing (KeyCode)
 import Models exposing (GithubUser, GithubUserSearch)
 import Navigation exposing (Location)
 import RemoteData exposing (WebData)
+import Window exposing (Size)
 
 type Msg
   = OnChangeGithubUserNameToSearch String
@@ -17,4 +18,4 @@ type Msg
   | OnSearchGithubUser GithubUserSearch
   | OnToggleCircleCreation
   | OnTimerCreateRandomCircle
-  | OnWindowWidthChange Int
+  | OnWindowSizeChange Size

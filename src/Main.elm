@@ -89,8 +89,12 @@ update msg model =
         ( model, Random.generate (\(x, y) -> Msgs.OnGenerateRandomCircle x y) pairGen )
     Msgs.OnToggleCircleCreation ->
       toggleCircleCreation model
-    Msgs.OnWindowWidthChange width ->
-      ( { model | windowWidth = width }, Cmd.none)
+    Msgs.OnWindowSizeChange size ->
+      let
+        width = size.width
+        height = size.height
+      in
+        ( { model | windowWidth = width, windowHeight = height }, Cmd.none)
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -112,12 +116,12 @@ main = Navigation.program Msgs.OnLocationChange
 
 windowWidthCmd : Cmd Msg
 windowWidthCmd =
-  Task.perform Msgs.OnWindowWidthChange Window.width
+  Task.perform Msgs.OnWindowSizeChange Window.size
 
 standardSubList : List (Sub Msg)
 standardSubList =
   [ Mouse.moves (\{x, y} -> Msgs.OnMousePositionChange x y)
-  , Window.resizes (\size -> Msgs.OnWindowWidthChange size.width)
+  , Window.resizes (\size -> Msgs.OnWindowSizeChange size)
   , Keyboard.presses (\keyCode -> Msgs.OnKeyPressed keyCode)
   ]
 

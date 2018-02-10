@@ -13,7 +13,6 @@ matchers =
     , map Challenge3Route (s ("challenge3"))
     , map Challenge4Route (s ("challenge4"))
     , map Challenge5Route (s ("challenge5"))
-    , map Challenge6Route (s ("challenge6"))
     ]
 
 parseLocation : Location -> Route

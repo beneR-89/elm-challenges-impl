@@ -26,7 +26,8 @@ type alias Model = {
   githubUserSearch : GithubUserSearch,
   mousePosition : Position,
   route : Route,
-  windowWidth : Int
+  windowWidth : Int,
+  windowHeight: Int
 }
 
 initialModel : Route -> Model
@@ -39,7 +40,8 @@ initialModel route =
     githubUserSearch = { id = -1, search = "" },
     mousePosition = { x = -1, y = -1 },
     route = route,
-    windowWidth = -1
+    windowWidth = -1,
+    windowHeight = -1
   }
 
 type Route
@@ -49,7 +51,6 @@ type Route
   | Challenge3Route
   | Challenge4Route
   | Challenge5Route
-  | Challenge6Route
   | NotFoundRoute
 
 fetchGithubUserUrl : String -> String

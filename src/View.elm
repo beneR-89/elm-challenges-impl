@@ -5,7 +5,6 @@ import Challenges.Challenge2 as Challenge2
 import Challenges.Challenge3 as Challenge3
 import Challenges.Challenge4 as Challenge4
 import Challenges.Challenge5 as Challenge5
-import Challenges.Challenge6 as Challenge6
 import Html exposing (Html, div, text, nav, ul, li, a, p, h1)
 import Html.Attributes exposing (class, href)
 import Models exposing (Model)
@@ -24,7 +23,6 @@ page model =
     Models.Challenge3Route -> Challenge3.view model
     Models.Challenge4Route -> Challenge4.view model
     Models.Challenge5Route -> Challenge5.view model
-    Models.Challenge6Route -> Challenge6.view model
     Models.NotFoundRoute -> homeView model
 
 homeView : Model -> Html Msg
@@ -47,7 +45,6 @@ challengeNav =
                     , challengeNavItem 3
                     , challengeNavItem 4
                     , challengeNavItem 5
-                    , challengeNavItem 6
                 ]
             ]
         ]
