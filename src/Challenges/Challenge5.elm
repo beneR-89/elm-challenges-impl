@@ -6,7 +6,7 @@ import Html.Attributes exposing (class, style)
 import Models exposing (Model)
 import Msgs exposing (Msg)
 
-import Challenges.Common.SnakeGame exposing (createSnakeView)
+import Challenges.Common.SnakeGame as SnakeGame exposing (createSnakeView)
 
 view : Model -> Html Msg
 view model =
@@ -29,6 +29,6 @@ snakeView model =
   in
     case snakeSize of
       Just size ->
-        div [ class "snakeViewContainer" ] [ createSnakeView size ]
+        div [ class "snakeViewContainer" ] [ createSnakeView (SnakeGame.Model size) ]
       Nothing ->
-        div [ class "snakeViewContainer" ] [ createSnakeView defaultSnakeSize ]
+        div [ class "snakeViewContainer" ] [ createSnakeView (SnakeGame.Model defaultSnakeSize) ]
