@@ -111,9 +111,11 @@ update msg model =
               ( { model | windowWidth = width, windowHeight = height, snakeModel = snakeModel }, Cmd.none)
     Msgs.SnakeMessage msg ->
       let
-        snakeModel = SnakeGame.update msg model.snakeModel
+        snakeUpdate = model.snakeModel |> SnakeGame.update msg
+        snakeModel = Tuple.first snakeUpdate
+        snakeCmd = Tuple.second snakeUpdate |> Cmd.map Msgs.mapSnakeMsg
       in
-        ( { model | snakeModel = snakeModel }, Cmd.none)
+        ( { model | snakeModel = snakeModel }, snakeCmd)
 
 subscriptions : Model -> Sub Msg
 subscriptions model =

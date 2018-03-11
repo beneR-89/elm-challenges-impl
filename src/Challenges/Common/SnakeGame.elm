@@ -32,7 +32,7 @@ initialModel =
   {
     size = 482,
     headPosition = Position 9 9,
-    bodyPositions = [Position 9 10],
+    bodyPositions = [Position 9 10, Position 9 11],
     applePosition = Position 9 4,
     walkingDirection = Left,
     isGameRunning = False,
@@ -43,9 +43,8 @@ type Msg
   = OnTimerMoveSnake
   | OnKeyPressed KeyCode
   | OnStartGame
-  | OnStopGame
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
     OnTimerMoveSnake ->
@@ -56,11 +55,10 @@ update msg model =
           |> updateApplePosition
           |> checkGameStatus
       in
-        nextModel
+        (nextModel, Cmd.none)
     OnKeyPressed keyCode ->
-      { model | walkingDirection = updateWalkingDirection keyCode model.walkingDirection }
-    OnStartGame -> { model | isGameRunning = True }
-    OnStopGame -> { model | isGameRunning = False }
+      ({ model | walkingDirection = updateWalkingDirection keyCode model.walkingDirection }, Cmd.none)
+    OnStartGame -> ({ model | isGameRunning = True }, Cmd.none)
 
 updateWalkingDirection : KeyCode -> Direction -> Direction
 updateWalkingDirection keyCode oldDirection =
@@ -101,7 +99,25 @@ updateApplePosition : Model -> Model
 updateApplePosition model = model
 
 checkGameStatus : Model -> Model
-checkGameStatus model = model
+checkGameStatus model =
+  let
+    hasLeftMatchField = boundaryRuleViolation model.headPosition
+    isBodyCollision = snakeBodyRuleViolation model.headPosition model.bodyPositions
+    gameOver = hasLeftMatchField || isBodyCollision
+  in
+    if gameOver then initialModel else model
+
+boundaryRuleViolation : Position -> Bool
+boundaryRuleViolation head =
+  let
+    rowViolation = head.row < 1 || head.row > numSquaresPerRow
+    colViolation = head.col < 1 || head.col > numSquaresPerRow
+  in
+    rowViolation || colViolation
+
+snakeBodyRuleViolation : Position -> List Position -> Bool
+snakeBodyRuleViolation head body =
+  List.any (\bodyPos -> bodyPos == head) body
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
