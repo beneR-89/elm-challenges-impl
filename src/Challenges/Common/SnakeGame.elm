@@ -1,10 +1,16 @@
-module Challenges.Common.SnakeGame exposing (createSnakeView, Model)
+module Challenges.Common.SnakeGame exposing (view, Model, initialModel, Msg, update, subscriptions)
 
-import Html exposing (Html)
-import Collage exposing (..)
-import Element exposing (..)
+import Html exposing (Html, div, text, h1, p, button)
+import Html.Attributes exposing (class)
+import Html.Events exposing (onClick)
+import Collage exposing (circle, rect, collage, filled, Form, move, groupTransform)
+import Element exposing (toHtml)
 import Color exposing (Color, rgb)
 import Transform exposing (translation)
+import Keyboard exposing (KeyCode)
+import Time exposing (Time)
+
+type Direction = Top | Bottom | Left | Right
 
 type alias Position = {
   row: Int,
@@ -12,8 +18,109 @@ type alias Position = {
 }
 
 type alias Model = {
-  size: Int
+  size: Int,
+  headPosition: Position,
+  bodyPositions: List Position,
+  applePosition: Position,
+  walkingDirection: Direction,
+  isGameRunning: Bool
 }
+
+initialModel : Model
+initialModel =
+  {
+    size = 482,
+    headPosition = Position 9 9,
+    bodyPositions = [Position 9 10],
+    applePosition = Position 9 4,
+    walkingDirection = Left,
+    isGameRunning = False
+  }
+
+type Msg
+  = OnTimerMoveSnake
+  | OnKeyPressed KeyCode
+  | OnStartGame
+  | OnStopGame
+
+update : Msg -> Model -> Model
+update msg model =
+  case msg of
+    OnTimerMoveSnake ->
+      let
+        nextModel = model
+          |> updateSnakePositions
+          |> updateApplePosition
+          |> checkGameStatus
+      in
+        nextModel
+    OnKeyPressed keyCode ->
+      { model | walkingDirection = updateWalkingDirection keyCode model.walkingDirection }
+    OnStartGame -> { model | isGameRunning = True }
+    OnStopGame -> { model | isGameRunning = False }
+
+updateWalkingDirection : KeyCode -> Direction -> Direction
+updateWalkingDirection keyCode oldDirection =
+  case keyCode of
+    38 -> Top
+    40 -> Bottom
+    37 -> Left
+    39 -> Right
+    _ -> oldDirection
+
+updateSnakePositions : Model -> Model
+updateSnakePositions model =
+  let
+    body = model.bodyPositions
+      |> List.take (List.length model.bodyPositions - 1)
+      |> (::) model.headPosition
+    head = updateHeadPosition model.walkingDirection model.headPosition
+  in
+    { model | bodyPositions = body, headPosition = head }
+
+updateHeadPosition : Direction -> Position -> Position
+updateHeadPosition direction position =
+  case direction of
+    Top -> Position (position.row - 1) position.col
+    Bottom -> Position (position.row + 1) position.col
+    Left -> Position position.row (position.col - 1)
+    Right -> Position position.row (position.col + 1)
+
+updateApplePosition : Model -> Model
+updateApplePosition model = model
+
+checkGameStatus : Model -> Model
+checkGameStatus model = model
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+  if model.isGameRunning then
+    Sub.batch
+      [ Keyboard.downs (\keyCode -> OnKeyPressed keyCode)
+      , Time.every 2000 (\time -> OnTimerMoveSnake)
+      ]
+  else
+    Sub.none
+
+view : Model -> Html Msg
+view model =
+  let
+    snakeView = createSnakeView model
+  in
+    if model.isGameRunning then
+      div [] [ snakeView ]
+    else
+      div [] [ startScreen ]
+
+startScreen : Html Msg
+startScreen =
+  div [ class "jumbotron" ]
+    [ h1 [] [ text "Welcome to Snake!" ]
+    , p [] [ text "Click Go to start a new game" ]
+    , p []
+        [ button [ onClick OnStartGame, class "btn btn-primary" ] [ text "Go" ]
+        ]
+    ]
 
 createSnakeView : Model -> Html msg
 createSnakeView model =
@@ -21,11 +128,10 @@ createSnakeView model =
     size = model.size
     sizeF = toFloat size
     squareSizeF = sizeF / (toFloat numSquaresPerRow)
-    head = snakeHead squareSizeF (Position 1 5)
-    positions = [Position 1 6, Position 1 7, Position 1 8, Position 2 8]
-    body = snakeBodyElements squareSizeF positions
-    apple = snakeApple squareSizeF (Position 1 4)
-    snakeForms = [snakeField sizeF, snakeSquares squareSizeF, head, body, apple]
+    head = snakeHead squareSizeF model.headPosition
+    body = snakeBodyElements squareSizeF model.bodyPositions
+    apple = snakeApple squareSizeF model.applePosition
+    snakeForms = [snakeField sizeF, snakeSquares squareSizeF, apple, body, head]
   in
     toHtml (collage size size snakeForms)
 

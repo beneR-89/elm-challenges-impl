@@ -6,7 +6,7 @@ import Html.Attributes exposing (class, style)
 import Models exposing (Model)
 import Msgs exposing (Msg)
 
-import Challenges.Common.SnakeGame as SnakeGame exposing (createSnakeView)
+import Challenges.Common.SnakeGame as SnakeGame
 
 view : Model -> Html Msg
 view model =
@@ -19,16 +19,10 @@ view model =
         ]
     ]
 
-snakeView : Model -> Html msg
+snakeView : Model -> Html Msg
 snakeView model =
-  let
-    windowWidth = model.windowWidth - 30
-    windowHeight = model.windowHeight - 55
-    defaultSnakeSize = 482
-    snakeSize = List.minimum [windowWidth, windowHeight, defaultSnakeSize]
-  in
-    case snakeSize of
-      Just size ->
-        div [ class "snakeViewContainer" ] [ createSnakeView (SnakeGame.Model size) ]
-      Nothing ->
-        div [ class "snakeViewContainer" ] [ createSnakeView (SnakeGame.Model defaultSnakeSize) ]
+  div [ class "snakeViewContainer" ]
+    [ model.snakeModel
+        |> SnakeGame.view
+        |> Html.map Msgs.mapSnakeMsg
+    ]

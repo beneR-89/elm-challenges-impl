@@ -16,6 +16,7 @@ import Task
 import Time exposing (Time)
 import View exposing (view)
 import Window
+import Challenges.Common.SnakeGame as SnakeGame
 
 init : Location -> ( Model, Cmd Msg )
 init location =
@@ -93,18 +94,40 @@ update msg model =
       let
         width = size.width
         height = size.height
+        initialSnakeModel = SnakeGame.initialModel
+        currentSnakeModel = model.snakeModel
+        snakeFieldSize = List.minimum [width-30, height-55, initialSnakeModel.size]
       in
-        ( { model | windowWidth = width, windowHeight = height }, Cmd.none)
+        case snakeFieldSize of
+          Just size ->
+            let
+              snakeModel = { currentSnakeModel | size = size }
+            in
+              ( { model | windowWidth = width, windowHeight = height, snakeModel = snakeModel }, Cmd.none)
+          Nothing ->
+            let
+              snakeModel = { currentSnakeModel | size = initialSnakeModel.size }
+            in
+              ( { model | windowWidth = width, windowHeight = height, snakeModel = snakeModel }, Cmd.none)
+    Msgs.SnakeMessage msg ->
+      let
+        snakeModel = SnakeGame.update msg model.snakeModel
+      in
+        ( { model | snakeModel = snakeModel }, Cmd.none)
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
   let
     drawCircles = drawRandomCircles model.route model.drawRandomCircles
+    snakeSub = model.snakeModel
+      |> SnakeGame.subscriptions
+      |> Sub.map Msgs.mapSnakeMsg
+    subList = if model.route == Challenge5Route then snakeSub :: standardSubList else standardSubList
   in
     if drawCircles then
-      Sub.batch (circleTimeSub :: standardSubList)
+      Sub.batch (circleTimeSub :: subList)
     else
-      Sub.batch standardSubList
+      Sub.batch subList
 
 main : Program Never Model Msg
 main = Navigation.program Msgs.OnLocationChange

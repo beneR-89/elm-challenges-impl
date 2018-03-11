@@ -1,6 +1,7 @@
 module Models exposing (..)
 
 import RemoteData exposing (WebData)
+import Challenges.Common.SnakeGame as SnakeGame
 
 type alias Position = {
   x : Int,
@@ -27,7 +28,8 @@ type alias Model = {
   mousePosition : Position,
   route : Route,
   windowWidth : Int,
-  windowHeight: Int
+  windowHeight: Int,
+  snakeModel: SnakeGame.Model
 }
 
 initialModel : Route -> Model
@@ -41,7 +43,8 @@ initialModel route =
     mousePosition = { x = -1, y = -1 },
     route = route,
     windowWidth = -1,
-    windowHeight = -1
+    windowHeight = -1,
+    snakeModel = SnakeGame.initialModel
   }
 
 type Route
