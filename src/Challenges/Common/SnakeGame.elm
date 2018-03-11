@@ -23,7 +23,8 @@ type alias Model = {
   bodyPositions: List Position,
   applePosition: Position,
   walkingDirection: Direction,
-  isGameRunning: Bool
+  isGameRunning: Bool,
+  growLarger: Bool
 }
 
 initialModel : Model
@@ -34,7 +35,8 @@ initialModel =
     bodyPositions = [Position 9 10],
     applePosition = Position 9 4,
     walkingDirection = Left,
-    isGameRunning = False
+    isGameRunning = False,
+    growLarger = False
   }
 
 type Msg
@@ -50,6 +52,7 @@ update msg model =
       let
         nextModel = model
           |> updateSnakePositions
+          |> maybeEatApple
           |> updateApplePosition
           |> checkGameStatus
       in
@@ -71,8 +74,9 @@ updateWalkingDirection keyCode oldDirection =
 updateSnakePositions : Model -> Model
 updateSnakePositions model =
   let
+    shift = if model.growLarger then 0 else 1
     body = model.bodyPositions
-      |> List.take (List.length model.bodyPositions - 1)
+      |> List.take (List.length model.bodyPositions - shift)
       |> (::) model.headPosition
     head = updateHeadPosition model.walkingDirection model.headPosition
   in
@@ -86,6 +90,13 @@ updateHeadPosition direction position =
     Left -> Position position.row (position.col - 1)
     Right -> Position position.row (position.col + 1)
 
+maybeEatApple : Model -> Model
+maybeEatApple model =
+  let
+    shallEat = model.headPosition == model.applePosition
+  in
+    { model | growLarger = shallEat }
+
 updateApplePosition : Model -> Model
 updateApplePosition model = model
 
@@ -97,7 +108,7 @@ subscriptions model =
   if model.isGameRunning then
     Sub.batch
       [ Keyboard.downs (\keyCode -> OnKeyPressed keyCode)
-      , Time.every 2000 (\time -> OnTimerMoveSnake)
+      , Time.every 500 (\time -> OnTimerMoveSnake)
       ]
   else
     Sub.none
