@@ -23,7 +23,7 @@ type alias Model = {
   blueCircles : List Position,
   drawRandomCircles : Bool,
   githubUser : WebData GithubUser,
-  githubUserLanguages : WebData (List String),
+  githubUserLanguages : WebData (List (Maybe String)),
   githubUserSearch : GithubUserSearch,
   mousePosition : Position,
   route : Route,

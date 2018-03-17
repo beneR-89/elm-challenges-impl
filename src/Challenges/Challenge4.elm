@@ -47,7 +47,7 @@ githubUserImage maybeUserInfo =
     RemoteData.Loading -> div [] []
     RemoteData.Failure err -> div [] []
 
-githubUserDetails : WebData GithubUser -> WebData (List String) -> Html msg
+githubUserDetails : WebData GithubUser -> WebData (List (Maybe String)) -> Html msg
 githubUserDetails maybeUserInfo maybeUserLanguages =
   div [ class "userDetails" ]
     [ githubUserName maybeUserInfo
@@ -66,7 +66,7 @@ githubUserName maybeUserInfo =
     RemoteData.Loading -> div [] []
     RemoteData.Failure err -> div [] []
 
-githubUserLanguages : WebData (List String) -> Html msg
+githubUserLanguages : WebData (List (Maybe String)) -> Html msg
 githubUserLanguages maybeLanguages =
   case maybeLanguages of
     RemoteData.Success languages ->
@@ -74,6 +74,7 @@ githubUserLanguages maybeLanguages =
         [ p [ class "h3" ] [ text "Languages:" ]
         , ul []
           ( languages
+            |> List.filterMap identity
             |> dropDuplicates
             |> List.map (\l -> li [] [ text l ])
           )

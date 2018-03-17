@@ -11,7 +11,7 @@ type Msg
   = OnChangeGithubUserNameToSearch String
   | OnGenerateRandomCircle Int Int
   | OnGithubUserInfo (WebData GithubUser)
-  | OnGithubUserRepos (WebData (List String))
+  | OnGithubUserRepos (WebData (List (Maybe String)))
   | OnKeyPressed KeyCode
   | OnLocationChange Location
   | OnMousePositionChange Int Int

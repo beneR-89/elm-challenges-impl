@@ -226,6 +226,6 @@ decodeGithubUserInfo =
     (Decode.field "repos_url" Decode.string)
     (Decode.field "name" Decode.string)
 
-decodeGithubUserReposInfo : Decode.Decoder (List String)
+decodeGithubUserReposInfo : Decode.Decoder (List (Maybe String))
 decodeGithubUserReposInfo =
-  (Decode.list (Decode.field "language" Decode.string))
+  (Decode.list (Decode.field "language" (Decode.nullable Decode.string)))
