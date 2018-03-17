@@ -9,6 +9,7 @@ import Color exposing (Color, rgb)
 import Transform exposing (translation)
 import Keyboard exposing (KeyCode)
 import Time exposing (Time)
+import Random
 
 type Direction = Top | Bottom | Left | Right
 
@@ -21,7 +22,7 @@ type alias Model = {
   size: Int,
   headPosition: Position,
   bodyPositions: List Position,
-  applePosition: Position,
+  applePosition: Maybe Position,
   walkingDirection: Direction,
   isGameRunning: Bool,
   growLarger: Bool
@@ -31,9 +32,9 @@ initialModel : Model
 initialModel =
   {
     size = 482,
-    headPosition = Position 9 9,
-    bodyPositions = [Position 9 10, Position 9 11],
-    applePosition = Position 9 4,
+    headPosition = Position startRow startRow,
+    bodyPositions = [Position startRow (startRow+1), Position startRow (startRow+2)],
+    applePosition = Just (Position (startRow+1) (startRow-1)),
     walkingDirection = Left,
     isGameRunning = False,
     growLarger = False
@@ -42,6 +43,7 @@ initialModel =
 type Msg
   = OnTimerMoveSnake
   | OnKeyPressed KeyCode
+  | OnGenerateApple (Maybe Position)
   | OnStartGame
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -54,10 +56,14 @@ update msg model =
           |> maybeEatApple
           |> updateApplePosition
           |> checkGameStatus
+        cmd = if nextModel.growLarger then
+          Random.generate (\pos -> OnGenerateApple pos) (appleGenerator model.headPosition model.bodyPositions)
+        else Cmd.none
       in
-        (nextModel, Cmd.none)
+        (nextModel, cmd)
     OnKeyPressed keyCode ->
       ({ model | walkingDirection = updateWalkingDirection keyCode model.walkingDirection }, Cmd.none)
+    OnGenerateApple position -> ({ model | applePosition = position }, Cmd.none)
     OnStartGame -> ({ model | isGameRunning = True }, Cmd.none)
 
 updateWalkingDirection : KeyCode -> Direction -> Direction
@@ -90,10 +96,13 @@ updateHeadPosition direction position =
 
 maybeEatApple : Model -> Model
 maybeEatApple model =
-  let
-    shallEat = model.headPosition == model.applePosition
-  in
-    { model | growLarger = shallEat }
+  case model.applePosition of
+    Just applePosition ->
+      let
+        shallEat = model.headPosition == applePosition
+      in
+        { model | growLarger = shallEat }
+    Nothing -> { model | growLarger = False }
 
 updateApplePosition : Model -> Model
 updateApplePosition model = model
@@ -118,6 +127,45 @@ boundaryRuleViolation head =
 snakeBodyRuleViolation : Position -> List Position -> Bool
 snakeBodyRuleViolation head body =
   List.any (\bodyPos -> bodyPos == head) body
+
+appleGenerator : Position -> List Position -> Random.Generator (Maybe Position)
+appleGenerator head body =
+  let
+    currentSnakeSize = List.length body + 1
+    numFields = numSquaresPerRow * numSquaresPerRow
+    numFreeFields = numFields - currentSnakeSize
+    intGenerator = Random.int 1 numFreeFields
+    getPosition = head :: body |> positionFromFreeFieldIndex
+  in
+    intGenerator |> Random.map (\(idx) -> getPosition idx)
+
+positionFromFreeFieldIndex : List Position -> Int -> Maybe Position
+positionFromFreeFieldIndex occupiedFields index =
+  let
+    occupiedFieldIndices = occupiedFields |> List.map fieldIndex
+    freeIndices = (List.range 1 (numSquaresPerRow * numSquaresPerRow))
+      |> List.filter (\idx -> not (List.member idx occupiedFieldIndices))
+    mappedIndex = if index <= List.length freeIndices then
+      freeIndices
+        |> List.drop (index-1)
+        |> List.head
+      else Nothing
+  in
+    case mappedIndex of
+      Just idx -> Just (fieldPosition idx)
+      Nothing -> Nothing
+
+fieldIndex : Position -> Int
+fieldIndex position =
+  (position.row - 1) * numSquaresPerRow + position.col
+
+fieldPosition : Int -> Position
+fieldPosition index =
+  let
+    row = (index-1) // numSquaresPerRow
+    col = rem (index-1) numSquaresPerRow
+  in
+    Position (row+1) (col+1)
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -157,10 +205,19 @@ createSnakeView model =
     squareSizeF = sizeF / (toFloat numSquaresPerRow)
     head = snakeHead squareSizeF model.headPosition
     body = snakeBodyElements squareSizeF model.bodyPositions
-    apple = snakeApple squareSizeF model.applePosition
-    snakeForms = [snakeField sizeF, snakeSquares squareSizeF, apple, body, head]
   in
-    toHtml (collage size size snakeForms)
+    case model.applePosition of
+      Just applePosition ->
+        let
+          apple = snakeApple squareSizeF applePosition
+          snakeForms = [snakeField sizeF, snakeSquares squareSizeF, apple, body, head]
+        in
+          toHtml (collage size size snakeForms)
+      Nothing ->
+        let
+          snakeForms = [snakeField sizeF, snakeSquares squareSizeF, body, head]
+        in
+          toHtml (collage size size snakeForms)
 
 snakeField : Float -> Form
 snakeField size =
@@ -244,8 +301,11 @@ move2Init squareSize forms =
   in
     groupTransform tMat forms
 
+startRow : Int
+startRow = numSquaresPerRow // 2
+
 numSquaresPerRow : Int
-numSquaresPerRow = 17
+numSquaresPerRow = 10
 
 gameFieldGreen : Color
 gameFieldGreen = rgb 50 150 50
