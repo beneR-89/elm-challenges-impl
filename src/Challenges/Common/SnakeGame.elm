@@ -1,6 +1,6 @@
 module Challenges.Common.SnakeGame exposing (view, Model, initialModel, Msg, update, subscriptions)
 
-import Html exposing (Html, div, text, h1, p, button)
+import Html exposing (Html, div, text, h1, h2, p, button)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Collage exposing (circle, rect, collage, filled, Form, move, groupTransform)
@@ -10,6 +10,7 @@ import Transform exposing (translation)
 import Keyboard exposing (KeyCode)
 import Time exposing (Time)
 import Random
+import Challenges.Common.Highscore.Highscore as Highscore
 
 type Direction = Top | Bottom | Left | Right
 
@@ -25,7 +26,8 @@ type alias Model = {
   applePosition: Maybe Position,
   walkingDirection: Direction,
   isGameRunning: Bool,
-  growLarger: Bool
+  growLarger: Bool,
+  highscoreModel: Highscore.Model
 }
 
 initialModel : Model
@@ -37,7 +39,8 @@ initialModel =
     applePosition = Just (Position (startRow+1) (startRow-1)),
     walkingDirection = Left,
     isGameRunning = False,
-    growLarger = False
+    growLarger = False,
+    highscoreModel = Highscore.initialModel
   }
 
 type Msg
@@ -45,26 +48,48 @@ type Msg
   | OnKeyPressed KeyCode
   | OnGenerateApple (Maybe Position)
   | OnStartGame
+  | OnHighscoreMsg Highscore.Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
     OnTimerMoveSnake ->
       let
+        score = getScore model.headPosition model.bodyPositions
+        highscoreUpdate = model.highscoreModel
+          |> Highscore.update (Highscore.OnNewScore score)
+        highscoreModel = Tuple.first highscoreUpdate
+        highscoreCmd = Tuple.second highscoreUpdate
         nextModel = model
           |> updateSnakePositions
           |> maybeEatApple
           |> updateApplePosition
           |> checkGameStatus
         cmd = if nextModel.growLarger then
-          Random.generate (\pos -> OnGenerateApple pos) (appleGenerator model.headPosition model.bodyPositions)
-        else Cmd.none
+          Cmd.batch
+            [ Random.generate (\pos -> OnGenerateApple pos) (appleGenerator model.headPosition model.bodyPositions)
+            , highscoreCmd ]
+          else highscoreCmd
       in
-        (nextModel, cmd)
+        ( { nextModel | highscoreModel = highscoreModel }, cmd)
     OnKeyPressed keyCode ->
       ({ model | walkingDirection = updateWalkingDirection keyCode model.walkingDirection }, Cmd.none)
     OnGenerateApple position -> ({ model | applePosition = position }, Cmd.none)
     OnStartGame -> ({ model | isGameRunning = True }, Cmd.none)
+    OnHighscoreMsg msg ->
+      let
+        highscoreUpdate = model.highscoreModel
+          |> Highscore.update msg
+        highscoreModel = Tuple.first highscoreUpdate
+        highscoreCmd = Tuple.second highscoreUpdate
+      in
+        ({ model | highscoreModel = highscoreModel }, highscoreCmd)
+
+mapHighscoreMsg : Highscore.Msg -> Msg
+mapHighscoreMsg msg = OnHighscoreMsg msg
+
+getScore : Position -> List Position -> Int
+getScore head body = List.length (head :: body)
 
 updateWalkingDirection : KeyCode -> Direction -> Direction
 updateWalkingDirection keyCode oldDirection =
@@ -175,7 +200,7 @@ subscriptions model =
       , Time.every 500 (\time -> OnTimerMoveSnake)
       ]
   else
-    Sub.none
+    model.highscoreModel |> Highscore.subscriptions |> Sub.map mapHighscoreMsg
 
 view : Model -> Html Msg
 view model =
@@ -185,13 +210,18 @@ view model =
     if model.isGameRunning then
       div [] [ snakeView ]
     else
-      div [] [ startScreen ]
+      div [] [ startScreen model.highscoreModel ]
 
-startScreen : Html Msg
-startScreen =
+startScreen : Highscore.Model -> Html Msg
+startScreen highscoreModel =
   div [ class "jumbotron" ]
     [ h1 [] [ text "Welcome to Snake!" ]
-    , p [] [ text "Click Go to start a new game" ]
+    , h2 [ class "text-primary" ]
+        [ toString highscoreModel.highscore
+            |> String.append "Your current highscore is: "
+            |> text
+        ]
+    , h2 [] [ text "Click Go to start a new game" ]
     , p []
         [ button [ onClick OnStartGame, class "btn btn-primary" ] [ text "Go" ]
         ]
